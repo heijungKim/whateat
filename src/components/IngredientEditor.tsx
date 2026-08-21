@@ -19,8 +19,8 @@ export default function IngredientEditor({ ingredients, onChange, onAddPhoto, on
 
   return (
     <div className="ingredient-editor">
-      <h2 className="section-title">인식된 재료 🥕</h2>
-      <p className="section-desc">잘못 인식된 재료는 ✕를 눌러 지우고, 빠진 재료는 직접 추가하세요</p>
+      <h2 className="section-title">내 재료 🥕</h2>
+      <p className="section-desc">잘못된 재료는 ✕를 눌러 지우고, 빠진 재료는 직접 추가하세요</p>
 
       <div className="chips">
         {ingredients.map((ing) => (

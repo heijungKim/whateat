@@ -123,14 +123,16 @@ export default function App() {
             <button className="btn-primary" onClick={openCamera}>
               📷 냉장고 사진 찍기
             </button>
-            {ingredients.length > 0 && (
-              <button className="btn-secondary" onClick={() => setScreen('ingredients')}>
-                🥕 내 재료 보기 ({ingredients.length}개)
-              </button>
-            )}
+            <button className="btn-secondary" onClick={() => setScreen('ingredients')}>
+              {ingredients.length > 0
+                ? `🥕 내 재료 보기 (${ingredients.length}개)`
+                : '✍️ 재료 직접 입력하기 (무료)'}
+            </button>
             {!apiKey && (
               <p className="hint" onClick={() => setShowSettings(true)}>
-                시작하려면 설정(⚙️)에서 Claude API 키를 등록하세요
+                사진 인식은 설정(⚙️)에 Claude API 키를 등록해야 동작해요
+                <br />
+                키 없이도 재료 직접 입력으로 모든 기능을 쓸 수 있어요
               </p>
             )}
           </div>
