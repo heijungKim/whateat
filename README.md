@@ -2,6 +2,8 @@
 
 냉장고 사진을 찍으면 만들 수 있는 요리를 찾아주는 모바일 웹앱.
 
+**▶ 라이브: https://heijungkim.github.io/whateat/**
+
 ## 주요 기능
 
 1. **냉장고 사진 촬영** → Claude API 비전으로 식재료 자동 인식 (잘못 인식된 재료는 수동 수정 가능)
@@ -17,7 +19,13 @@
 npm install
 npm run dev      # 개발 서버
 npm run build    # 프로덕션 빌드 (dist/)
+npm run deploy   # 빌드 후 gh-pages 브랜치로 GitHub Pages 배포
 ```
+
+> 참고: 현재 gh CLI 토큰에 `workflow` 권한이 없어 GitHub Actions 자동 배포 대신
+> `npm run deploy` 수동 배포를 사용합니다. 자동 배포를 원하면
+> `gh auth refresh -h github.com -s workflow`로 권한을 추가한 뒤
+> Pages 공식 워크플로(.github/workflows)를 추가하세요.
 
 앱 실행 후 설정(⚙️)에서 [Claude API 키](https://console.anthropic.com/settings/keys)를 등록해야
 사진 인식이 동작합니다. 키는 브라우저 localStorage에만 저장됩니다.
