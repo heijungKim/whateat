@@ -130,9 +130,9 @@ export default function App() {
             </button>
             {!apiKey && (
               <p className="hint" onClick={() => setShowSettings(true)}>
-                사진 인식은 설정(⚙️)에 Claude API 키를 등록해야 동작해요
+                사진 인식은 설정(⚙️)에서 API 키를 등록하면 동작해요
                 <br />
-                키 없이도 재료 직접 입력으로 모든 기능을 쓸 수 있어요
+                무료 Gemini 키로도 가능해요 (설정에서 발급 안내)
               </p>
             )}
           </div>

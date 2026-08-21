@@ -10,6 +10,15 @@ const PROMPT = `이 사진은 냉장고 내부(또는 식재료) 사진입니다
 
 {"ingredients": ["재료1", "재료2", ...]}`
 
+export type Provider = 'claude' | 'gemini'
+
+// 키 형식으로 제공자를 판별한다: Google API 키는 AIza, Anthropic 키는 sk-ant- 로 시작
+export function detectProvider(apiKey: string): Provider | null {
+  if (apiKey.startsWith('sk-ant-')) return 'claude'
+  if (apiKey.startsWith('AIza')) return 'gemini'
+  return null
+}
+
 // 사진을 긴 변 1024px 이하 JPEG로 압축해 토큰/전송량을 줄인다
 export async function compressImage(file: File): Promise<string> {
   const bitmap = await createImageBitmap(file)
@@ -26,6 +35,15 @@ export async function compressImage(file: File): Promise<string> {
 }
 
 export async function recognizeIngredients(apiKey: string, imageBase64: string): Promise<string[]> {
+  const provider = detectProvider(apiKey)
+  if (provider === 'claude') return recognizeWithClaude(apiKey, imageBase64)
+  if (provider === 'gemini') return recognizeWithGemini(apiKey, imageBase64)
+  throw new Error(
+    '키 형식을 인식할 수 없습니다. Gemini 키는 AIza, Claude 키는 sk-ant- 로 시작합니다.',
+  )
+}
+
+async function recognizeWithClaude(apiKey: string, imageBase64: string): Promise<string[]> {
   const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true })
 
   const response = await client.beta.messages.create({
@@ -55,6 +73,42 @@ export async function recognizeIngredients(apiKey: string, imageBase64: string):
   const text = response.content
     .filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text')
     .map((b) => b.text)
+    .join('')
+
+  return parseIngredients(text)
+}
+
+// Google Gemini 무료 등급 (aistudio.google.com 에서 무료 키 발급)
+async function recognizeWithGemini(apiKey: string, imageBase64: string): Promise<string[]> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
+            { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } },
+            { text: PROMPT },
+          ],
+        },
+      ],
+    }),
+  })
+
+  if (!res.ok) {
+    if (res.status === 400 || res.status === 401 || res.status === 403) {
+      throw new Error('Gemini API 키가 올바르지 않습니다. 설정에서 키를 확인해주세요.')
+    }
+    if (res.status === 429) {
+      throw new Error('무료 사용량 한도에 도달했습니다. 잠시 후(또는 내일) 다시 시도해주세요.')
+    }
+    throw new Error(`Gemini API 오류가 발생했습니다 (${res.status}). 잠시 후 다시 시도해주세요.`)
+  }
+
+  const data = await res.json()
+  const text: string = (data.candidates?.[0]?.content?.parts ?? [])
+    .map((p: { text?: string }) => p.text ?? '')
     .join('')
 
   return parseIngredients(text)
